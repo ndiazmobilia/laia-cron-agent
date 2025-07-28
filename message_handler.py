@@ -2,6 +2,9 @@ import os
 import listener_handler
 import notifier_handler
 from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_or_create_assistant(assistant_id_env, assistant_name, prompt_file, tools=[]):
     client = OpenAI()
@@ -22,8 +25,10 @@ def get_or_create_assistant(assistant_id_env, assistant_name, prompt_file, tools
         tools=tools
     )
 
-    with open('.env', 'a') as f:
-        f.write(f'\n{assistant_id_env}={assistant.id}')
+    with open('.env', 'a+') as f:
+        f.seek(0)
+        if assistant_id_env not in f.read():
+            f.write(f'\n{assistant_id_env}={assistant.id}')
 
     print(f"Created {assistant_name} assistant with ID: {assistant.id}")
     return assistant
