@@ -21,9 +21,31 @@ def add_cron_task(command, time="0 10 * * *"):
         return json.dumps({"status": "error", "details": f"Failed to schedule command. The crontab command returned a non-zero exit code: {result}. This is likely due to an invalid crontab expression: '{time}'"})
 
 
-def remove_cron_task(command):
-    os.system(f'(crontab -l | grep -v "{command}") | crontab -')
-    return json.dumps({"status": "success", "details": f"Removed command '{command}'"})
+def remove_cron_task(message_substring):
+    print(f"[cron_manager.py] remove_cron_task called with message_substring: '{message_substring}'")
+    current_crontab = os.popen('crontab -l').read()
+    lines = current_crontab.splitlines()
+    new_lines = [line for line in lines if message_substring not in line]
+    
+    with open("cron_temp", "w") as f:
+        for line in new_lines:
+            f.write(f'{line}\n')
+    
+    result = os.system("crontab cron_temp")
+    os.remove("cron_temp")
+    
+    if result == 0:
+        return json.dumps({"status": "success", "details": f"Removed tasks containing '{message_substring}'"})
+    else:
+        return json.dumps({"status": "error", "details": f"Failed to remove tasks. Crontab command returned non-zero exit code: {result}"})
+
+def clear_all_cron_tasks():
+    print("[cron_manager.py] clear_all_cron_tasks called.")
+    result = os.system("crontab -r")
+    if result == 0:
+        return json.dumps({"status": "success", "details": "All cron tasks cleared."})
+    else:
+        return json.dumps({"status": "error", "details": f"Failed to clear all cron tasks. Crontab command returned non-zero exit code: {result}"})
 
 def list_cron_tasks():
     return os.popen('crontab -l').read()
