@@ -1,8 +1,5 @@
-google-api-python-client
-google-auth-httplib2
-google-auth-oauthlib
-python-telegram-bot
+python-telegram-bot[job-queue]
+openai
 python-dotenv
 Flask
-gunicorn
-schedule
+requests
