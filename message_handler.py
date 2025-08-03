@@ -3,21 +3,24 @@ import listener_handler
 import notifier_handler
 from openai import OpenAI
 from dotenv import load_dotenv
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 load_dotenv()
 
 def get_or_create_assistant(assistant_id_env, assistant_name, prompt_file, tools=[]):
     client = OpenAI()
-    print(f"[message_handler.py] Checking for assistant: {assistant_name}")
+    logging.info(f"Checking for assistant: {assistant_name}")
     if os.getenv(assistant_id_env):
         assistant_id = os.getenv(assistant_id_env)
-        print(f"[message_handler.py] Found existing {assistant_name} ID: {assistant_id}")
+        logging.info(f"Found existing {assistant_name} ID: {assistant_id}")
         return client.beta.assistants.retrieve(assistant_id)
 
     with open(prompt_file, 'r') as f:
         prompt = f.read()
 
-    print(f"[message_handler.py] Creating new {assistant_name}...")
+    logging.info(f"Creating new {assistant_name}...")
     assistant = client.beta.assistants.create(
         name=assistant_name,
         instructions=prompt,
@@ -30,18 +33,18 @@ def get_or_create_assistant(assistant_id_env, assistant_name, prompt_file, tools
         if assistant_id_env not in f.read():
             f.write(f'\n{assistant_id_env}={assistant.id}')
 
-    print(f"Created {assistant_name} assistant with ID: {assistant.id}")
+    logging.info(f"Created {assistant_name} assistant with ID: {assistant.id}")
     return assistant
 
 def handle_message(message, chat_id, source=None):
-    print(f"[message_handler.py] Handling message: '{message}', chat_id='{chat_id}', source='{source}'")
+    logging.info(f"Handling message: '{message}', chat_id='{chat_id}', source='{source}'")
     if message.startswith("/"):
-        print("[message_handler.py] Message is a command.")
+        logging.info("Message is a command.")
         # Command handling logic will go here
         return "Command handling not yet implemented."
 
     if source == "notifier":
-        print("[message_handler.py] Message source is notifier.")
+        logging.info("Message source is notifier.")
         assistant = get_or_create_assistant(
             'NOTIFIER_ASSISTANT_ID',
             'Notifier AI',
@@ -49,7 +52,7 @@ def handle_message(message, chat_id, source=None):
         )
         return notifier_handler.handle_message(message, chat_id, assistant)
     else:
-        print("[message_handler.py] Message source is listener.")
+        logging.info("Message source is listener.")
         assistant = get_or_create_assistant(
             'LISTENER_ASSISTANT_ID',
             'Listener AI',
