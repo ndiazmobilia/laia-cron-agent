@@ -59,7 +59,7 @@ def handle_message(message, chat_id, source=None):
                     "type": "function",
                     "function": {
                         "name": "add_cron_job",
-                        "description": "Schedule a task to run at a specific time.",
+                        "description": "Schedule a recurring task to run at a specific time.",
                         "parameters": {
                             "type": "object",
                             "properties": {
@@ -73,6 +73,27 @@ def handle_message(message, chat_id, source=None):
                                 }
                             },
                             "required": ["crontab", "message"]
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "add_one_time_reminder",
+                        "description": "Schedule a one-time task to run at a specific time.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "time": {
+                                    "type": "string",
+                                    "description": "The time expression for the schedule (e.g., 'now + 10 minutes', '14:30', '9am tomorrow')."
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "description": "The message to be sent as a notification."
+                                }
+                            },
+                            "required": ["time", "message"]
                         }
                     }
                 }

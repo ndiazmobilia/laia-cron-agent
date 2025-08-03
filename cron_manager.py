@@ -50,3 +50,16 @@ def clear_all_cron_tasks():
 def list_cron_tasks():
     return os.popen('crontab -l').read()
 
+def add_at_job(command, time):
+    """Schedules a one-time task using the at command."""
+    print(f"[cron_manager.py] add_at_job called with command: '{command}' and time: '{time}'")
+    # The at command reads the command from stdin
+    escaped_command = command.replace("'", "'\\''")
+    result = os.system(f"echo '{escaped_command}' | at {time}")
+    print(escaped_command)
+    if result == 0:
+        return json.dumps({"status": "success", "details": f"Scheduled one-time task at '{time}'"})
+    else:
+        return json.dumps({"status": "error", "details": f"Failed to scheduled one-time task at '{time}'"})
+
+

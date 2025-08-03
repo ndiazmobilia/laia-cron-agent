@@ -59,6 +59,22 @@ def delete_all_reminders():
     print("[listener_handler.py] delete_all_reminders called.")
     return cron_manager.clear_all_cron_tasks()
 
+def add_one_time_reminder(time, message):
+    """Schedules a one-time reminder using the at command."""
+    print(f"[listener_handler.py] add_one_time_reminder called with time: '{time}' and message: '{message}'")
+    chat_id = memory.load_chat_id()
+    if not chat_id:
+        print("[listener_handler.py] Error: chat_id not found.")
+        return "I can't schedule tasks without a chat ID. Please send a message to the bot first."
+
+    escaped_message = message.replace("\"", "\\\"")
+    command = f"/mnt/c/Users/ndiaz/PycharmProjects/laia-cron-agent/.venv/bin/python3 /mnt/c/Users/ndiaz/PycharmProjects/laia-cron-agent/notifier.py \"{escaped_message}\" {chat_id}"
+    print(f"[listener_handler.py] Generated command for at: {command}")
+    
+    result = cron_manager.add_at_job(command, time)
+    print(f"[listener_handler.py] Result from cron_manager: {result}")
+    return result
+
 def handle_message(message, chat_id, assistant):
     print(f"[listener_handler.py] handle_message called for chat_id: {chat_id} with message: '{message}'")
     print(f"[listener_handler.py] Using assistant ID: {assistant.id}")
@@ -99,6 +115,11 @@ def handle_message(message, chat_id, assistant):
                     output = "I'm sorry, I couldn't schedule the task. Please provide a valid time and message."
                 else:
                     output = add_cron_job(arguments['crontab'], arguments['message'])
+            elif function_name == 'add_one_time_reminder':
+                if 'time' not in arguments or 'message' not in arguments:
+                    output = "I'm sorry, I couldn't schedule the one-time task. Please provide a valid time and message."
+                else:
+                    output = add_one_time_reminder(arguments['time'], arguments['message'])
             elif function_name == 'list_reminders':
                 output = list_reminders()
             elif function_name == 'delete_reminder':
@@ -124,9 +145,11 @@ def handle_message(message, chat_id, assistant):
         )
         print("[listener_handler.py] Submitted tool outputs.")
         # Wait for the run to complete after submitting tool outputs
-        while run.status in ['queued', 'in_progress']:
+        while True:
             run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
             print(f"[listener_handler.py] Run status: {run.status}")
+            if run.status not in ['queued', 'in_progress']:
+                break
 
     if run.status == "failed":
         error_message = f"[listener_handler.py] Run failed. Error code: {run.last_error.code}, Message: {run.last_error.message}"
