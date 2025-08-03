@@ -5,10 +5,13 @@ import memory
 import json
 import re
 import logging
+import os
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 client = OpenAI(api_key=config.OPENAI_API_KEY)
+
+PROJECT_ROOT = os.getenv('PROJECT_ROOT', '/mnt/c/Users/ndiaz/PycharmProjects/laia-cron-agent')
 
 def add_cron_job(crontab, message):
     logging.info(f"add_cron_job called with crontab: '{crontab}' and message: '{message}'")
@@ -21,7 +24,7 @@ def add_cron_job(crontab, message):
 
     # Escape double quotes in the message for the shell command
     escaped_message = message.replace("\"", "\\\"")
-    command = f"/mnt/c/Users/ndiaz/PycharmProjects/laia-cron-agent/.venv/bin/python3 /mnt/c/Users/ndiaz/PycharmProjects/laia-cron-agent/notifier.py \"{escaped_message}\" {chat_id}"
+    command = f"{PROJECT_ROOT}/.venv/bin/python3 {PROJECT_ROOT}/notifier.py \"{escaped_message}\" {chat_id}"
     logging.info(f"Generated command for cron: {command}")
     
     result = cron_manager.add_cron_task(command, crontab)
@@ -71,7 +74,7 @@ def add_one_time_reminder(time, message):
         return "I can't schedule tasks without a chat ID. Please send a message to the bot first."
 
     escaped_message = message.replace("\"", "\\\"")
-    command = f"/mnt/c/Users/ndiaz/PycharmProjects/laia-cron-agent/.venv/bin/python3 /mnt/c/Users/ndiaz/PycharmProjects/laia-cron-agent/notifier.py \"{escaped_message}\" {chat_id}"
+    command = f"{PROJECT_ROOT}/.venv/bin/python3 {PROJECT_ROOT}/notifier.py \"{escaped_message}\" {chat_id}"
     logging.info(f"Generated command for at: {command}")
     
     result = cron_manager.add_at_job(command, time)
