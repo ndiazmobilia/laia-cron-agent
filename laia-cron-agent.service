@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve laia-cron-agent
+After=network.target
+
+[Service]
+User=ndiaz
+Group=ndiaz
+WorkingDirectory=/mnt/c/Users/ndiaz/PycharmProjects/laia-cron-agent
+ExecStart=/mnt/c/Users/ndiaz/PycharmProjects/laia-cron-agent/.venv/bin/gunicorn --bind 0.0.0.0:5000 api:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
